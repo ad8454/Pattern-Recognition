@@ -9,7 +9,8 @@ def main():
         exit(0)
     elif len(sys.argv) == 1:
         aView = view()
-        aView.start('F:/Dev/PycharmProjects/Py34/PatternRecognition/Project1/filtered_x_2.csv')
+        file = 'F:/Dev/PycharmProjects/Py34/PatternRecognition/Project1/filtered_x_2.csv'
+        aView.start(file, [aView.hog])
     else:
         fileName = sys.argv[1]
         aView = view()
