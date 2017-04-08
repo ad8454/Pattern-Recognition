@@ -149,7 +149,7 @@ class view:
         return widthMax,widthMin,heightMax,heightMin
 
 
-    def start(self,fileName,limit=20):
+    def start(self,fileName,limit=30):
 
         with open(fileName) as fileDiscriptor:
             for line in fileDiscriptor:
@@ -165,7 +165,6 @@ class view:
         #print(self.filePath)
         numberToClass={}
         feature1=[]
-        target=[]
         count = 0
         featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
@@ -189,14 +188,14 @@ class view:
                 #cv2.waitKey(0)
                 bin=self.Histogram(img,self.resize//10)
                 feature1.append(bin)
-                target.append(count)
+                feature1.append(count)
                 featureFile.write(','.join(str(i) for i in bin))
                 featureFile.write(',' + (str(symb)) + '\n')
             count += 1
-            numberToClass[symb] = count
+            numberToClass[count] = symb
             #print(feature1)
         featureFile.close()
-        return numpy.asarray(feature1),target
+        return numpy.asarray(feature1)
 
     def bins(self,img,numberOfbins):
         size = self.resize // numberOfbins
@@ -251,7 +250,7 @@ if __name__ == '__main__':
             num=sys.argv[2]
         feature, target=aView.start(fileName,num)
         clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0)
-        scores = cross_val_score(clf, feature, target)
+        scores = cross_val_score(clf, feature[:,:], target)
         print(scores)
 
 
