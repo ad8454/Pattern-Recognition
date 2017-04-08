@@ -4,6 +4,8 @@ import platform
 import xml.etree.ElementTree as ET
 import cv2
 import os
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
 
 
 class view:
@@ -155,16 +157,18 @@ class view:
                 line = line.split(",")
                 Class = line[1]
                 self.createDict(Class,line[0])
-
+        for i in self.filePath.keys():
+            print(i," ",len(self.filePath[i]))
         firstPath = True
+        #self.filePath.pop("\in")
 
         #print(self.filePath)
-
-        feature1={}
-
+        numberToClass={}
+        feature1=[]
+        target=[]
+        count = 0
         featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
-            count = 0
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
             for item in values:
@@ -180,19 +184,19 @@ class view:
                 normalized=self.normalizedImage(widthMax,widthMin,heightMax,heightMin,strockInfo)
                 img=self.createImage(normalized)
                 img = self.centerTheImage(img, widthMax-widthMin, heightMax-heightMin)
-                print(img.shape)
+                #print(img.shape)
                 #cv2.imshow('img', img)
                 #cv2.waitKey(0)
                 bin=self.Histogram(img,self.resize//10)
-                if symb in feature1:
-                    feature1[symb].append(bin)
-                else:
-                    feature1[symb]=[bin]
+                feature1.append(bin)
+                target.append(count)
                 featureFile.write(','.join(str(i) for i in bin))
                 featureFile.write(',' + (str(symb)) + '\n')
-                count += 1
-            print(feature1)
+            count += 1
+            numberToClass[symb] = count
+            #print(feature1)
         featureFile.close()
+        return numpy.asarray(feature1),target
 
     def bins(self,img,numberOfbins):
         size = self.resize // numberOfbins
@@ -242,9 +246,14 @@ if __name__ == '__main__':
     else:
         fileName = sys.argv[1]
         aView = view()
-        #print(sys.argv[2])
+        num=10
         if len(sys.argv) >2:
-            aView.start(fileName,sys.argv[2])
-        else:
-            aView.start(fileName)
+            num=sys.argv[2]
+        feature, target=aView.start(fileName,num)
+        clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0)
+        scores = cross_val_score(clf, feature, target)
+        print(scores)
+
+
+
 
