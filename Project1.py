@@ -191,8 +191,8 @@ class view:
                 feature1.append(count)
                 featureFile.write(','.join(str(i) for i in bin))
                 featureFile.write(',' + (str(symb)) + '\n')
-            count += 1
             numberToClass[count] = symb
+            count += 1
             #print(feature1)
         featureFile.close()
         return numpy.asarray(feature1)
