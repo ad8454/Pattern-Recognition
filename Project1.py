@@ -199,9 +199,9 @@ class view:
         featureFile.close()
         return numpy.asarray(feature1),target
 
-    def kd_tree(self, features, labels):
-        dt = sklearn.tree.DecisionTreeClassifier(min_samples_split=20, random_state=99)
-        dt.fit(features, labels)
+    def kd_tree(self, features):
+        kd = sklearn.tree.KDTree(features)
+        kd
 
     def bins(self,img,numberOfbins):
         size = self.resize // numberOfbins
