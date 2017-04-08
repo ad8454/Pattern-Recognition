@@ -4,10 +4,12 @@ import platform
 import xml.etree.ElementTree as ET
 import cv2
 import os
+
+from sklearn import cross_validation
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 import sklearn
-
+import scipy
 
 class view:
     __slots__ = 'folderName','filePath','HTMLFile','fileDiscriptor','resize','resize_other'
@@ -149,26 +151,26 @@ class view:
         heightMin = numpy.min(strockInfo1[:, 1])
         return widthMax,widthMin,heightMax,heightMin
 
-
-    def start(self,fileName,limit=30):
-
+    def openFile(self,fileName):
         with open(fileName) as fileDiscriptor:
             for line in fileDiscriptor:
                 line = line.strip()
                 line = line.split(",")
                 Class = line[1]
                 self.createDict(Class,line[0])
+
+    def start(self,fileName,limit=30):
+        self.openFile(fileName)
         for i in self.filePath.keys():
             print(i," ",len(self.filePath[i]))
         firstPath = True
-        #self.filePath.pop("\in")
-
-        #print(self.filePath)
         numberToClass={}
         feature1=[]
         count = 0
         featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
+            if len(self.filePath[symb]) < limit:
+                continue
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
             for item in values:
@@ -196,13 +198,23 @@ class view:
             count += 1
             #print(feature1)
         featureFile.close()
-        return numpy.asarray(feature1)
+        features = numpy.asarray(feature1)
+
+        self.random_forest(features)
+        self.kd_tree(features)
+
+    def random_forest(self, feature):
+        clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0)
+        print(feature)
+        scores = cross_val_score(clf, feature[:, :-1], feature[:, -1])
+        print(scores)
 
     def kd_tree(self, features):
-        kd = sklearn.tree.KDTree(features)
-        score = cross_val_score(kd, features[:,:-1], features[:,-1])
+        kd = sklearn.neighbors.KDTree(features)
+        samples = features[:, :-1]
+        label = features[:, -1]
         print('kdtree score: ')
-        print(score)
+        print()
 
     def bins(self,img,numberOfbins):
         size = self.resize // numberOfbins
@@ -246,12 +258,8 @@ if __name__ == '__main__':
         num=10
         if len(sys.argv) >2:
             num=sys.argv[2]
-        feature=aView.start(fileName,num)
-        clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0)
-        print(feature)
-        scores = cross_val_score(clf, feature[:,:-1], feature[:,-1])
-        print(scores)
-        aView.kd_tree(feature)
+        aView.start(fileName,num)
+
 
 
 
