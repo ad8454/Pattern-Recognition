@@ -85,15 +85,15 @@ class view:
         factor = max(deltaX,deltaY)
         val2 = (int)((deltaX * self.resize // factor))
         val=(int)(deltaY*self.resize//factor)
-        print(val, " ", val2)
+        #print(val, " ", val2)
         if self.resize > val:
-            print(val)
+            #print(val)
             #img=cv2.copyMakeBorder(img, (int)(deltaY*self.resize//(deltaX* 2)), 0,0,0, cv2.BORDER_CONSTANT, 0)
             M = numpy.float32([[1, 0, 0], [0, 1, (self.resize-val)//2]])
             img = cv2.warpAffine(img, M, (self.resize, self.resize))
 
         if self.resize > val2:
-            print(val)
+            #print(val)
             #img=cv2.copyMakeBorder(img,0,0,(int)((deltaX*self.resize//(deltaY*2))),0,cv2.BORDER_CONSTANT,0)
             M = numpy.float32([[1, 0, (self.resize-val2)//2], [0, 1, 0]])
             img = cv2.warpAffine(img, M, (self.resize, self.resize))
@@ -135,11 +135,19 @@ class view:
             cv2.polylines(img, [pts], False, (255, 255, 255))
 
         img = cv2.GaussianBlur(img, (3, 3), 1)
-        cv2.imshow('window', img)
-        cv2.waitKey(0)
+        #cv2.imshow('window', img)
+        #cv2.waitKey(0)
         return img
 
-    def start(self,fileName,limit=10):
+    def calculateTheDelta(self,strockInfo1):
+        widthMax = numpy.max(strockInfo1[:, 0])
+        widthMin = numpy.min(strockInfo1[:, 0])
+        heightMax = numpy.max(strockInfo1[:, 1])
+        heightMin = numpy.min(strockInfo1[:, 1])
+        return widthMax,widthMin,heightMax,heightMin
+
+    def start(self,fileName,limit=20):
+    def start(self,fileName,limit=20):
 
         with open(fileName) as fileDiscriptor:
             for line in fileDiscriptor:
@@ -150,8 +158,9 @@ class view:
 
         firstPath = True
 
-        print(self.filePath)
+        #print(self.filePath)
 
+        feature1={}
         for symb in self.filePath.keys():
             count = 0
             size = min(int(limit), len(self.filePath[symb]))
@@ -160,30 +169,29 @@ class view:
                 if firstPath:
                     self.folderName = self.getFolderName(fileName,item)
                     firstPath=False
-                print(self.folderName + item)
+                #print(self.folderName + item)
                 tree = ET.parse(self.folderName + item)
                 strockList,strockList1 = self.getVal(tree)
                 strockInfo = numpy.asarray(strockList)
                 strockInfo1 = numpy.asarray(strockList1)
-
-                widthMax = numpy.max(strockInfo1[:,0])
-                widthMin =  numpy.min(strockInfo1[:,0])
-                heightMax = numpy.max(strockInfo1[:,1])
-                heightMin = numpy.min(strockInfo1[:, 1])
-
+                widthMax, widthMin, heightMax, heightMin = self.calculateTheDelta(strockInfo1)
                 normalized=self.normalizedImage(widthMax,widthMin,heightMax,heightMin,strockInfo)
-                print(normalized)
-
                 img=self.createImage(normalized)
                 img = self.centerTheImage(img, widthMax-widthMin, heightMax-heightMin)
                 print(img.shape)
-                cv2.imshow('img', img)
-                cv2.waitKey(0)
-                count += 1
+                #cv2.imshow('img', img)
+                #cv2.waitKey(0)
+                bin=self.Histogram(img,self.resize//10)
+                if symb in feature1:
+                    feature1[symb].append(bin)
+                else:
+                    feature1[symb]=[bin]
 
+                count += 1
+            print(feature1)
 
     def bins(self,img,numberOfbins):
-        size = self.resize / numberOfbins
+        size = self.resize // numberOfbins
         prevY = 0
         bins=[]
         for iter in range(size, self.resize, size):
@@ -205,14 +213,17 @@ class view:
         '''
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         bining = self.bins(img,numberOfChunks)
-        hist={}
 
+        '''
         for iter in bining:
             for jiter in iter:
                 if jiter in hist:
                     hist[jiter]+=1
                 else:
                     hist[jiter]=1
+        print(hist)
+        '''
+        return bining
 
 
 if __name__ == '__main__':
@@ -228,5 +239,8 @@ if __name__ == '__main__':
         fileName = sys.argv[1]
         aView = view()
         #print(sys.argv[2])
-        if len(sys.argv) ==3:
+        if len(sys.argv) >2:
             aView.start(fileName,sys.argv[2])
+        else:
+            aView.start(fileName)
+
