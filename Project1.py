@@ -13,14 +13,23 @@ def main():
     else:
         fileName = sys.argv[1]
         aView = view()
-        num=10
+        num=1000
         if len(sys.argv) >2:
             num=sys.argv[2]
         functions=[]
-        feature=aView.start(fileName,[aView.Histogram],num)
+        feature=aView.start(fileName,[aView.zonning,aView.XaxisProjection,aView.YaxisProjection],num)
+        print("Feature shape=",feature.shape)
+        numpy.random.shuffle(feature)
+        size = len(feature)*70//100
+        train = feature[:size]
+        print('train: ', numpy.unique(train[:,-1]))
+        test = feature[size:]
+        print('test: ', numpy.unique(test[:,-1]))
 
-        random_forest_train(feature[:,:-1],feature[:,-1])
-        #kd_tree(feature)
+        rf=random_forest_train(train[:,:-1],train[:,-1])
+        random_forest_test(rf,test[:,:-1],test[:,-1])
+        kd=kd_tree_train(train[:,:-1])
+        kd_tree_test(kd,test[:,:-1],test[:,-1],train[:,-1])        #kd_tree(feature)
 
 if __name__ == '__main__':
     main()
