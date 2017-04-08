@@ -159,13 +159,28 @@ class view:
                 Class = line[1]
                 self.createDict(Class,line[0])
 
-    def start(self,fileName,limit=30):
+
+    def preprocessing(self,item):
+        tree = ET.parse(self.folderName + item)
+        strockList, strockList1 = self.getVal(tree)
+        strockInfo = numpy.asarray(strockList)
+        strockInfo1 = numpy.asarray(strockList1)
+        widthMax, widthMin, heightMax, heightMin = self.calculateTheDelta(strockInfo1)
+        normalized = self.normalizedImage(widthMax, widthMin, heightMax, heightMin, strockInfo)
+        img = self.createImage(normalized)
+        img = self.centerTheImage(img, widthMax - widthMin, heightMax - heightMin)
+        # print(img.shape)
+        # cv2.imshow('img', img)
+        # cv2.waitKey(0)
+        return img
+
+    def start(self,fileName,featurefunctions,limit=30,):
         self.openFile(fileName)
         for i in self.filePath.keys():
             print(i," ",len(self.filePath[i]))
         firstPath = True
         numberToClass={}
-        feature1=[]
+        featureMatrix=[]
         count = 0
         featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
@@ -174,38 +189,26 @@ class view:
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
             for item in values:
+                featureVector = numpy.array([])
                 if firstPath:
                     self.folderName = self.getFolderName(fileName,item)
                     firstPath=False
-                #print(self.folderName + item)
-                tree = ET.parse(self.folderName + item)
-                strockList,strockList1 = self.getVal(tree)
-                strockInfo = numpy.asarray(strockList)
-                strockInfo1 = numpy.asarray(strockList1)
-                widthMax, widthMin, heightMax, heightMin = self.calculateTheDelta(strockInfo1)
-                normalized=self.normalizedImage(widthMax,widthMin,heightMax,heightMin,strockInfo)
-                img=self.createImage(normalized)
-                img = self.centerTheImage(img, widthMax-widthMin, heightMax-heightMin)
-                #print(img.shape)
-                #cv2.imshow('img', img)
-                #cv2.waitKey(0)
-                bin=self.Histogram(img,self.resize//10)
-                bin=numpy.append(bin,count)
-                feature1.append(bin)
-                featureFile.write(','.join(str(i) for i in bin))
-                featureFile.write(',' + (str(symb)) + '\n')
+                img=self.preprocessing(item)
+                for function in featurefunctions:
+                    feature=function(img)
+                    featureVector=numpy.append(featureVector,feature)
+                featureVector = numpy.append(featureVector,count)
+                featureMatrix.append(featureVector)
+                featureFile.write(','.join(str(i) for i in featureVector))
+                #featureFile.write(',' + (str(symb)) + '\n')
             numberToClass[count] = symb
             count += 1
-            #print(feature1)
         featureFile.close()
-        features = numpy.asarray(feature1)
-
-        self.random_forest(features)
-        self.kd_tree(features)
+        return numpy.asarray(featureMatrix)
 
     def random_forest(self, feature):
         clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0)
-        print(feature)
+        print(feature.shape)
         scores = cross_val_score(clf, feature[:, :-1], feature[:, -1])
         print(scores)
 
@@ -230,7 +233,7 @@ class view:
         return numpy.asarray(bins)
 
 
-    def Histogram(self,img,numberOfChunks):
+    def Histogram(self,img,numberOfChunks=10):
         '''
         This program creates the histogram
         :param img:
@@ -258,7 +261,12 @@ if __name__ == '__main__':
         num=10
         if len(sys.argv) >2:
             num=sys.argv[2]
-        aView.start(fileName,num)
+        functions=[]
+        feature=aView.start(fileName,[aView.Histogram],num)
+
+        aView.random_forest(feature)
+        aView.kd_tree(feature)
+
 
 
 
