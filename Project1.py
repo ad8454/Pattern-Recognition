@@ -4,6 +4,8 @@ import platform
 import xml.etree.ElementTree as ET
 import cv2
 import os
+
+from sklearn import cross_validation
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 
@@ -148,26 +150,26 @@ class view:
         heightMin = numpy.min(strockInfo1[:, 1])
         return widthMax,widthMin,heightMax,heightMin
 
-
-    def start(self,fileName,limit=30):
-
+    def openFile(self,fileName):
         with open(fileName) as fileDiscriptor:
             for line in fileDiscriptor:
                 line = line.strip()
                 line = line.split(",")
                 Class = line[1]
                 self.createDict(Class,line[0])
+
+    def start(self,fileName,limit=30):
+        self.openFile(fileName)
         for i in self.filePath.keys():
             print(i," ",len(self.filePath[i]))
         firstPath = True
-        #self.filePath.pop("\in")
-
-        #print(self.filePath)
         numberToClass={}
         feature1=[]
         count = 0
         featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
+            if len(self.filePath[symb]) < limit:
+                continue
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
             for item in values:
@@ -253,6 +255,13 @@ if __name__ == '__main__':
         print(feature)
         scores = cross_val_score(clf, feature[:,:-1], feature[:,-1])
         print(scores)
+        kf = cross_validation.KFold(len(y), n_folds=5)
+        for train_index, test_index in kf:
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            model.fit(X_train, y_train)
+            print(confusion_matrix(y_test, model.predict(X_test)))
 
 
 
