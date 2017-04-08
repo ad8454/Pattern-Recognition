@@ -1,8 +1,8 @@
 import numpy
 import sys
 import platform
-import  xml.etree.ElementTree as ET
-import  cv2
+import xml.etree.ElementTree as ET
+import cv2
 import os
 
 
@@ -25,9 +25,9 @@ class view:
 
         os1 = platform.platform()
 
-        if "Windows" in os1:
+        if fileName.comtains('\\'):
             osType = "\\"
-        if "Linux" in os1:
+        if fileName.comtains('/'):
             osType = "/"
 
         flag=False
@@ -48,11 +48,6 @@ class view:
             fileName1 = fileName1[-1]
             fileName = fileName.strip(fileName1)
         return path+osType
-
-
-
-
-
 
     def getVal(self,tree):
         strokList=[]
@@ -137,7 +132,11 @@ class view:
         for eachStrock in normalized:
             pts = numpy.asarray(eachStrock, numpy.int32)
             pts = pts.reshape((-1, 1, 2))
-            cv2.polylines(img, [pts], False, (0, 255, 255))
+            cv2.polylines(img, [pts], False, (255, 255, 255))
+
+        img = cv2.GaussianBlur(img, (3, 3), 1)
+        cv2.imshow('window', img)
+        cv2.waitKey(0)
         return img
 
     def start(self,fileName,limit=10):
@@ -161,6 +160,7 @@ class view:
                 if firstPath:
                     self.folderName = self.getFolderName(fileName,item)
                     firstPath=False
+                print(self.folderName + item)
                 tree = ET.parse(self.folderName + item)
                 strockList,strockList1 = self.getVal(tree)
                 strockInfo = numpy.asarray(strockList)
@@ -229,14 +229,17 @@ class view:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 1:
         print(len(sys.argv))
         print(" ERROR: wrong argument \n EXPEXTED: view-class.py <name of the file>  ")
         exit(0)
+    else:
+        aView = view()
+        aView.start('F:/Dev/PycharmProjects/Py34/PatternRecognition/Project1/filtered_x_2.csv')
     fileName = sys.argv[1]
     aView = view()
     #print(sys.argv[2])
     if len(sys.argv) ==3:
         aView.start(fileName,sys.argv[2])
     else:
-        aView.start(fileName)
+        aView.start('../filtered_x_2.csv')
