@@ -1,6 +1,6 @@
 import sys
 from Preprocess import view
-from Classifiers import Classifiers
+from Classifiers import *
 
 def main():
     if len(sys.argv) < 1:
@@ -19,8 +19,8 @@ def main():
         functions=[]
         feature=aView.start(fileName,[aView.Histogram],num)
 
-        aView.random_forest(feature)
-        aView.kd_tree(feature)
+        random_forest_train(feature[:,:-1],feature[:,-1])
+        #kd_tree(feature)
 
 if __name__ == '__main__':
     main()
