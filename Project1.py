@@ -200,7 +200,9 @@ class view:
 
     def kd_tree(self, features):
         kd = sklearn.tree.KDTree(features)
-        kd
+        score = cross_val_score(kd, features[:,:-1], features[:,-1])
+        print('kdtree score: ')
+        print(score)
 
     def bins(self,img,numberOfbins):
         size = self.resize // numberOfbins
@@ -249,6 +251,7 @@ if __name__ == '__main__':
         print(feature)
         scores = cross_val_score(clf, feature[:,:-1], feature[:,-1])
         print(scores)
+        aView.kd_tree(feature)
 
 
 
