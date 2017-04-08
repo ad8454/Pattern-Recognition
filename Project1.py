@@ -146,7 +146,7 @@ class view:
         heightMin = numpy.min(strockInfo1[:, 1])
         return widthMax,widthMin,heightMax,heightMin
 
-    def start(self,fileName,limit=20):
+
     def start(self,fileName,limit=20):
 
         with open(fileName) as fileDiscriptor:
@@ -161,6 +161,8 @@ class view:
         #print(self.filePath)
 
         feature1={}
+
+        featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
             count = 0
             size = min(int(limit), len(self.filePath[symb]))
@@ -186,9 +188,11 @@ class view:
                     feature1[symb].append(bin)
                 else:
                     feature1[symb]=[bin]
-
+                featureFile.write(','.join(str(i) for i in bin))
+                featureFile.write(',' + (str(symb)) + '\n')
                 count += 1
             print(feature1)
+        featureFile.close()
 
     def bins(self,img,numberOfbins):
         size = self.resize // numberOfbins
@@ -196,11 +200,11 @@ class view:
         bins=[]
         for iter in range(size, self.resize, size):
             prevX = 0
-            row=[]
+            #row=[]
             for jiter in range(size, self.resize, size):
                 part = img[prevY:iter, prevX:jiter]
-                row.append(numpy.sum(part))
-            bins.append(row)
+                bins.append(numpy.sum(part)/(size*size))
+            #bins.append(row)
         return numpy.asarray(bins)
 
 
