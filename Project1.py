@@ -86,7 +86,7 @@ class view:
             self.filePath[Class.lower()] = [path]
 
 
-    def padd(self,img,deltaX,deltaY):
+    def centerTheImage(self,img,deltaX,deltaY):
         factor = max(deltaX,deltaY)
         val2 = (int)((deltaX * self.resize // factor))
         val=(int)(deltaY*self.resize//factor)
@@ -132,6 +132,14 @@ class view:
         return normalized
 
 
+    def createImage(self,normalized):
+        img = numpy.zeros((self.resize, self.resize, 3), numpy.uint8)
+        for eachStrock in normalized:
+            pts = numpy.asarray(eachStrock, numpy.int32)
+            pts = pts.reshape((-1, 1, 2))
+            cv2.polylines(img, [pts], False, (0, 255, 255))
+        return img
+
     def start(self,fileName,limit=10):
 
         with open(fileName) as fileDiscriptor:
@@ -166,16 +174,49 @@ class view:
                 normalized=self.normalizedImage(widthMax,widthMin,heightMax,heightMin,strockInfo)
                 print(normalized)
 
-                img = numpy.zeros((self.resize,self.resize,3), numpy.uint8)
-                for eachStrock in normalized:
-                    pts = numpy.asarray(eachStrock, numpy.int32)
-                    pts = pts.reshape((-1, 1, 2))
-                    cv2.polylines(img, [pts], False, (0, 255, 255))
-                img= self.padd(img,widthMax - widthMin,heightMax-heightMin)
+                img=self.createImge(normalized)
+                img = self.centerTheImage(img, widthMax-widthMin, heightMax-heightMin)
                 print(img.shape)
-                cv2.imshow('img',img)
+                cv2.imshow('img', img)
                 cv2.waitKey(0)
                 count += 1
+
+
+    def bins(self,img,numberOfbins):
+        size = self.resize / numberOfbins
+        prevY = 0
+        bins=[]
+        for iter in range(size, self.resize, size):
+            prevX = 0
+            row=[]
+            for jiter in range(size, self.resize, size):
+                part = img[prevY:iter, prevX:jiter]
+                row.append(numpy.sum(part))
+            bins.append(row)
+        return numpy.asarray(bins)
+
+
+    def Histogram(self,img,numberOfChunks):
+        '''
+        This program creates the histogram
+        :param img:
+        :param numberOfChunks:
+        :return:
+        '''
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        bining = self.bins(img,numberOfChunks)
+        hist={}
+
+        for iter in bining:
+            for jiter in iter:
+                if jiter in hist:
+                    hist[jiter]+=1
+                else:
+                    hist[jiter]=1
+
+
+
+
 
 
 
