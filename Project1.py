@@ -187,8 +187,8 @@ class view:
                 #cv2.imshow('img', img)
                 #cv2.waitKey(0)
                 bin=self.Histogram(img,self.resize//10)
+                bin=numpy.append(bin,count)
                 feature1.append(bin)
-                feature1.append(count)
                 featureFile.write(','.join(str(i) for i in bin))
                 featureFile.write(',' + (str(symb)) + '\n')
             numberToClass[count] = symb
@@ -236,7 +236,7 @@ class view:
 if __name__ == '__main__':
     if len(sys.argv) < 1:
         print(len(sys.argv))
-        print(" ERROR: wrong argument \n EXPEXTED: view-class.py <name of the file>  ")
+        print(" ERROR: wrong argument \n EXPEXTED: view-class.py <name of the file> <limit> ")
         exit(0)
     elif len(sys.argv) == 1:
         aView = view()
@@ -248,9 +248,10 @@ if __name__ == '__main__':
         num=10
         if len(sys.argv) >2:
             num=sys.argv[2]
-        feature, target=aView.start(fileName,num)
+        feature=aView.start(fileName,num)
         clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0)
-        scores = cross_val_score(clf, feature[:,:], target)
+        print(feature)
+        scores = cross_val_score(clf, feature[:,:-1], feature[:,-1])
         print(scores)
 
 
