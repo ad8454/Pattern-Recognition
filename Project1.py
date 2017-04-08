@@ -25,9 +25,9 @@ class view:
 
         os1 = platform.platform()
 
-        if fileName.comtains('\\'):
+        if '\\' in fileName:
             osType = "\\"
-        if fileName.comtains('/'):
+        if '/' in  fileName:
             osType = "/"
 
         flag=False
@@ -174,7 +174,7 @@ class view:
                 normalized=self.normalizedImage(widthMax,widthMin,heightMax,heightMin,strockInfo)
                 print(normalized)
 
-                img=self.createImge(normalized)
+                img=self.createImage(normalized)
                 img = self.centerTheImage(img, widthMax-widthMin, heightMax-heightMin)
                 print(img.shape)
                 cv2.imshow('img', img)
@@ -215,31 +215,18 @@ class view:
                     hist[jiter]=1
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     if len(sys.argv) < 1:
         print(len(sys.argv))
         print(" ERROR: wrong argument \n EXPEXTED: view-class.py <name of the file>  ")
         exit(0)
-    else:
+    elif len(sys.argv) == 1:
         aView = view()
         aView.start('F:/Dev/PycharmProjects/Py34/PatternRecognition/Project1/filtered_x_2.csv')
-    fileName = sys.argv[1]
-    aView = view()
-    #print(sys.argv[2])
-    if len(sys.argv) ==3:
-        aView.start(fileName,sys.argv[2])
+
     else:
-        aView.start('../filtered_x_2.csv')
+        fileName = sys.argv[1]
+        aView = view()
+        #print(sys.argv[2])
+        if len(sys.argv) ==3:
+            aView.start(fileName,sys.argv[2])
