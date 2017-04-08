@@ -6,6 +6,7 @@ import cv2
 import os
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
+import sklearn
 
 
 class view:
@@ -198,6 +199,10 @@ class view:
         featureFile.close()
         return numpy.asarray(feature1),target
 
+    def kd_tree(self, features, labels):
+        dt = sklearn.tree.DecisionTreeClassifier(min_samples_split=20, random_state=99)
+        dt.fit(features, labels)
+
     def bins(self,img,numberOfbins):
         size = self.resize // numberOfbins
         prevY = 0
@@ -222,15 +227,6 @@ class view:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         bining = self.bins(img,numberOfChunks)
 
-        '''
-        for iter in bining:
-            for jiter in iter:
-                if jiter in hist:
-                    hist[jiter]+=1
-                else:
-                    hist[jiter]=1
-        print(hist)
-        '''
         return bining
 
 
