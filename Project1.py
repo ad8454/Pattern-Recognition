@@ -150,7 +150,7 @@ class view:
         return widthMax,widthMin,heightMax,heightMin
 
 
-    def start(self,fileName,limit=20):
+    def start(self,fileName,limit=30):
 
         with open(fileName) as fileDiscriptor:
             for line in fileDiscriptor:
@@ -166,7 +166,6 @@ class view:
         #print(self.filePath)
         numberToClass={}
         feature1=[]
-        target=[]
         count = 0
         featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
@@ -189,15 +188,15 @@ class view:
                 #cv2.imshow('img', img)
                 #cv2.waitKey(0)
                 bin=self.Histogram(img,self.resize//10)
+                bin=numpy.append(bin,count)
                 feature1.append(bin)
-                target.append(count)
                 featureFile.write(','.join(str(i) for i in bin))
                 featureFile.write(',' + (str(symb)) + '\n')
+            numberToClass[count] = symb
             count += 1
-            numberToClass[symb] = count
             #print(feature1)
         featureFile.close()
-        return numpy.asarray(feature1),target
+        return numpy.asarray(feature1)
 
     def kd_tree(self, features):
         kd = sklearn.tree.KDTree(features)
@@ -233,7 +232,7 @@ class view:
 if __name__ == '__main__':
     if len(sys.argv) < 1:
         print(len(sys.argv))
-        print(" ERROR: wrong argument \n EXPEXTED: view-class.py <name of the file>  ")
+        print(" ERROR: wrong argument \n EXPEXTED: view-class.py <name of the file> <limit> ")
         exit(0)
     elif len(sys.argv) == 1:
         aView = view()
@@ -245,9 +244,10 @@ if __name__ == '__main__':
         num=10
         if len(sys.argv) >2:
             num=sys.argv[2]
-        feature, target=aView.start(fileName,num)
+        feature=aView.start(fileName,num)
         clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0)
-        scores = cross_val_score(clf, feature, target)
+        print(feature)
+        scores = cross_val_score(clf, feature[:,:-1], feature[:,-1])
         print(scores)
 
 
