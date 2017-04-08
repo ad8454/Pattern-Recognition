@@ -10,7 +10,8 @@ def random_forest_train(train_features, ground_labels):
     return rf
 
 def random_forest_test(rf, test_features, test_labels):
-    scores = cross_val_score(rf, test_features, test_labels)
+    #scores = cross_val_score(rf, test_features, test_labels)
+    scores=rf.score(test_features,test_labels)
     print(scores)
 
 def kd_tree_train(train_features):

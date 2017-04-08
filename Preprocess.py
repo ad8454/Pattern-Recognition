@@ -78,7 +78,6 @@ class view:
 
 
     def centerTheImage(self,img,deltaX,deltaY):
-        print(deltaX," ",deltaY)
         factor = max(deltaX,deltaY)
         if factor != 0:
             val2 = (int)((deltaX * self.resize // factor))
@@ -171,8 +170,11 @@ class view:
 
     def start(self,fileName,featureFunctions,limit=1000):
         self.openFile(fileName)
+        len1=0
         for i in self.filePath.keys():
             print(i," ",len(self.filePath[i]))
+            len1+=len(self.filePath[i])
+        limit = len1/len(self.filePath.keys())
         firstPath = True
         numberToClass={}
         featureMatrix=[]
