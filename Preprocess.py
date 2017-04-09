@@ -4,6 +4,7 @@ import platform
 import xml.etree.ElementTree as ET
 import cv2
 import os
+import math
 
 class view:
     __slots__ = 'folderName','filePath','HTMLFile','fileDiscriptor','resize','resize_other'
@@ -64,6 +65,7 @@ class view:
             #print(strokList)
         return strokList,strokList1
 
+
     def createDict(self,Class,line):
         if Class == "junk" or Class=="Junk":
             pathName = "junk"
@@ -78,8 +80,11 @@ class view:
 
     def centerTheImage(self,img,deltaX,deltaY):
         factor = max(deltaX,deltaY)
-        val2 = (int)((deltaX * self.resize // factor))
-        val=(int)(deltaY*self.resize//factor)
+        if factor != 0:
+            val2 = (int)((deltaX * self.resize // factor))
+            val=(int)(deltaY*self.resize//factor)
+        else:
+            val2=val=0
         #print(val, " ", val2)
         if self.resize > val:
             #print(val)
@@ -162,18 +167,22 @@ class view:
         # cv2.waitKey(0)
         return img
 
-    def start(self,fileName,featureFunctions,limit=30):
+    def start(self,fileName,featureFunctions,limit=1000):
         self.openFile(fileName)
+        len1=0
         for i in self.filePath.keys():
-            print(i," ",len(self.filePath[i]))
+            #print(i," ",len(self.filePath[i]))
+            len1+=len(self.filePath[i])
+        limit = len1/len(self.filePath.keys())
         firstPath = True
         numberToClass={}
         featureMatrix=[]
         count = 0
-        featureFile = open("feature.csv", 'w', newline='')
+        #featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
-            if len(self.filePath[symb]) < limit:
-                continue
+            print('working on: ', symb)
+            #if len(self.filePath[symb]) < limit:
+            #    continue
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
             for item in values:
@@ -187,40 +196,43 @@ class view:
                     featureVector=numpy.append(featureVector,feature)
                 featureVector = numpy.append(featureVector,count)
                 featureMatrix.append(featureVector)
-                featureFile.write(','.join(str(i) for i in featureVector))
+                #featureFile.write(','.join(str(i) for i in featureVector))
                 #featureFile.write(',' + (str(symb)) + '\n')
             numberToClass[count] = symb
             count += 1
-        featureFile.close()
+        #featureFile.close()
         return numpy.asarray(featureMatrix)
 
-    def bins(self,img,numberOfbins):
+    def XaxisProjection(self,img):
+        projection=[]
+        for iter in range(self.resize):
+            projection.append(numpy.sum(img[:,iter]))
+        return numpy.asarray(projection)
+
+    def YaxisProjection(self,img):
+        projection=[]
+        for iter in range(0,self.resize):
+            projection.append(numpy.sum(img[iter]))
+        return numpy.asarray(projection)
+
+
+    def zonning(self,img,numberOfbins=10):
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         size = self.resize // numberOfbins
         prevY = 0
-        bins=[]
+        zone=[]
         for iter in range(size, self.resize, size):
             prevX = 0
             #row=[]
             for jiter in range(size, self.resize, size):
                 part = img[prevY:iter, prevX:jiter]
-                bins.append(numpy.sum(part)/(size*size))
-            #bins.append(row)
-        return numpy.asarray(bins)
+                zone.append(numpy.sum(part)/(size*size))
+            #zonning.append(row)
+        return numpy.asarray(zone)
 
 
     def Histogram(self,img,numberOfChunks=10):
-        '''
-        This program creates the histogram
-        :param img:
-        :param numberOfChunks:
-        :return:
-        '''
-        img = cv2.GaussianBlur(img, (3, 3), 1)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        bining = self.bins(img,numberOfChunks)
-
-        return bining
-
+        pass
 
     def hog(self, image):
         Gh = image.copy()
@@ -238,9 +250,6 @@ class view:
         for i in range(0, len(image), cell_size):
             for j in range(0, len(image[i]), cell_size):
                 img_cell = image[i:i+cell_size, j:j+cell_size]
-                print(img_cell.shape)
-                cv2.imshow('win', img_cell)
-                cv2.waitKey(0)
                 sumx = 0
                 sumy = 0
                 for a in range(3):
