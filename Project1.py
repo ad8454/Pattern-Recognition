@@ -21,11 +21,11 @@ def main():
             num=sys.argv[3]
 
     num = 1000
-    functions=[aView.zonning,aView.XaxisProjection,aView.YaxisProjection]
+    functions=[aView.hog]#, aView.zonning,aView.XaxisProjection,aView.YaxisProjection]
     train=aView.start(fileNameTrain,functions,num)
     print("Feature shape=",train.shape)
     numpy.random.shuffle(train)
-    test=aView.start(fileNameTest,functions,num)
+    test=view().start(fileNameTest,functions,num)
 
     print('done with features!!!')
 
