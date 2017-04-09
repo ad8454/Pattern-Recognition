@@ -13,7 +13,7 @@ class view:
     def __init__(self):
         self.filePath = {}
         self.folderName=""
-        self.resize = 100
+        self.resize = 50
 
     def getFolderName(self,fileName,file):
         '''
@@ -167,47 +167,61 @@ class view:
         # cv2.waitKey(0)
         return img
 
-    def start(self,fileName,featureFunctions,limit=999999):
+    def start(self, fileName, featureFunctions, limit=1000, classToNumber=None):
         self.openFile(fileName)
-        len1=0
+        len1 = 0
         for i in self.filePath.keys():
-            #print(i," ",len(self.filePath[i]))
-            len1+=len(self.filePath[i])
-        #limit = len1/len(self.filePath.keys())
+            # print(i," ",len(self.filePath[i]))
+            len1 += len(self.filePath[i])
+        # limit = len1/len(self.filePath.keys())
         firstPath = True
-        numberToClass={}
-        featureMatrix=numpy.array([])
-        #count = 0
-        #featureFile = open("feature"+fileName[-5:], 'w', newline='')
+        numberToClass = {}
+        featureMatrix = []
+        count = 0
+        # featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
             print('working on: ', symb)
-            #if len(self.filePath[symb]) < limit:
+            # if len(self.filePath[symb]) < limit:
             #    continue
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
-            for item in self.filePath[symb]:
+            for item in values:
                 featureVector = numpy.array([])
                 if firstPath:
-                    self.folderName = self.getFolderName(fileName,item)
-                    firstPath=False
+                    self.folderName = self.getFolderName(fileName, item)
+                    firstPath = False
                 try:
                     tree = ET.parse(self.folderName + item)
                 except:
                     self.folderName = self.getFolderName(fileName, item)
                     tree = ET.parse(self.folderName + item)
 
-                img=self.preprocessing(tree)
+                img = self.preprocessing(tree)
+
+                # blur the image and covert to grayscale
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                img = cv2.GaussianBlur(img, (3, 3), 1)
+
+
+
                 for function in featureFunctions:
-                    feature=function(img)
-                    featureVector=numpy.append(featureVector,feature)
-                featureVector = numpy.append(featureVector,symb)
-                featureMatrix = numpy.append(featureMatrix, featureVector)
-                #featureFile.write(','.join(str(i) for i in featureVector))
-                #featureFile.write('\n')
-            #numberToClass[count] = symb
-            #count += 1
-        #featureFile.close()
-        return featureMatrix#numpy.asarray(featureMatrix)
+                    feature = function(img)
+                    featureVector = numpy.append(featureVector, feature)
+                if classToNumber is not None:
+                    count = classToNumber[symb]
+                featureVector = numpy.append(featureVector, count)
+                featureMatrix.append(featureVector)
+                # featureFile.write(','.join(str(i) for i in featureVector))
+                # featureFile.write(',' + (str(symb)) + '\n')
+            numberToClass[symb] = count
+            count += 1
+            # featureFile.close()
+
+        if classToNumber is None:
+            # return for training set
+            return numpy.asarray(featureMatrix), numberToClass
+        # return for testing set
+        return numpy.asarray(featureMatrix)
 
     def XaxisProjection(self,img):
         projection=[]
@@ -238,7 +252,7 @@ class view:
         return numpy.asarray(projectionTopLeft)
 
     def zonning(self,img,numberOfbins=10):
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         size = self.resize // numberOfbins
         prevY = 0
         zone=[]

@@ -23,15 +23,16 @@ def main():
 
     num = 1000
     functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection, aView.DiagonalProjections]
-    train=aView.start(fileNameTrain,functions,num)
-    #print("Feature shape=",train.shape)
+    train, classToNumber = aView.start(fileNameTrain,functions,num)
+    print("Feature shape=",train.shape)
     numpy.random.shuffle(train)
 
     aView=view()
     functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection, aView.DiagonalProjections]
-    test=aView.start(fileNameTest,functions,num)
+    test=aView.start(fileNameTest,functions,num,classToNumber)
     numpy.random.shuffle(test)
-    #print("Feature shape=", test.shape)
+    print("Feature shape=", test.shape)
+    aView = view()
 
     print('done with features!!!')
     start = time.time()
