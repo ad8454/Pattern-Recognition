@@ -21,7 +21,7 @@ def main():
         train=aView.start(fileNameTrain,functions,num)
         print("Feature shape=",train.shape)
         numpy.random.shuffle(train)
-        test=aView.start(fileNameTest,functions,num)
+        test= view().start(fileNameTest,functions,num)
 
         rf=random_forest_train(train[:,:-1],train[:,-1])
         random_forest_test(rf,test[:,:-1],test[:,-1])
