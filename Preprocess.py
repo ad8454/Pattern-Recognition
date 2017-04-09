@@ -166,7 +166,7 @@ class view:
         # cv2.waitKey(0)
         return img
 
-    def start(self,fileName,featureFunctions,limit=1000):
+    def start(self,fileName,featureFunctions,limit=999999):
         self.openFile(fileName)
         len1=0
         for i in self.filePath.keys():
@@ -177,14 +177,14 @@ class view:
         numberToClass={}
         featureMatrix=[]
         count = 0
-        #featureFile = open("feature.csv", 'w', newline='')
+        #featureFile = open("feature"+fileName[-5:], 'w', newline='')
         for symb in self.filePath.keys():
             print('working on: ', symb)
             #if len(self.filePath[symb]) < limit:
             #    continue
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
-            for item in values:
+            for item in self.filePath[symb]:
                 featureVector = numpy.array([])
                 if firstPath:
                     self.folderName = self.getFolderName(fileName,item)
@@ -202,7 +202,7 @@ class view:
                 featureVector = numpy.append(featureVector,count)
                 featureMatrix.append(featureVector)
                 #featureFile.write(','.join(str(i) for i in featureVector))
-                #featureFile.write(',' + (str(symb)) + '\n')
+                #featureFile.write('\n')
             numberToClass[count] = symb
             count += 1
         #featureFile.close()

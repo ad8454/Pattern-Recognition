@@ -56,7 +56,9 @@ def partition_helper(file_txt, type, t):
             testing_size = len(all_symbols[key]) * t // 100
             for ele in all_symbols[key][:testing_size]:
                 new_file.write(str(ele) + ',' + key + '\n')
-
+    print("Total",len(all_symbols[key]))
+    print("Training size",testing_size)
+    print("Testing size", len(all_symbols[key])-testing_size)
     # write training data set to disk
     with open(type + '-train.csv', 'w') as new_file:
         for key in all_symbols.keys():
