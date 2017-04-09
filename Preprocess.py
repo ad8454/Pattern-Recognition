@@ -154,8 +154,7 @@ class view:
                 self.createDict(Class,line[0])
 
 
-    def preprocessing(self,item):
-        tree = ET.parse(self.folderName + item)
+    def preprocessing(self,tree):
         strockList, strockList1 = self.getVal(tree)
         strockInfo = numpy.asarray(strockList)
         strockInfo1 = numpy.asarray(strockList1)
@@ -174,7 +173,7 @@ class view:
         for i in self.filePath.keys():
             print(i," ",len(self.filePath[i]))
             len1+=len(self.filePath[i])
-        limit = len1/len(self.filePath.keys())
+        #limit = len1/len(self.filePath.keys())
         firstPath = True
         numberToClass={}
         featureMatrix=[]
@@ -190,7 +189,13 @@ class view:
                 if firstPath:
                     self.folderName = self.getFolderName(fileName,item)
                     firstPath=False
-                img=self.preprocessing(item)
+                try:
+                    tree = ET.parse(self.folderName + item)
+                except:
+                    self.folderName = self.getFolderName(fileName, item)
+                    tree = ET.parse(self.folderName + item)
+
+                img=self.preprocessing(tree)
                 for function in featureFunctions:
                     feature=function(img)
                     featureVector=numpy.append(featureVector,feature)
