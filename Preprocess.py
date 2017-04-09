@@ -182,6 +182,8 @@ class view:
         for symb in self.filePath.keys():
             print('working on: ', symb)
             # if len(self.filePath[symb]) < limit:
+            #print('working on: ', symb)
+            #if len(self.filePath[symb]) < limit:
             #    continue
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
