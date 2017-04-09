@@ -18,17 +18,17 @@ def main():
         if len(sys.argv) >2:
             num=sys.argv[2]
 
-
+    data = pickle.load(open("TrainWeightFile.p", "rb"))
     functions=[aView.zonning,aView.XaxisProjection,aView.YaxisProjection]
     aView=view()
-    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection]
-    test=aView.start(fileNameTest,functions,num)
+    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection]#,aView.DiagonalProjections]
+    test=aView.start(fileNameTest,functions,[aView.OnlineFeature])
     numpy.random.shuffle(test)
     print("Feature shape=", test.shape)
     print('done with features!!!')
-    data=pickle.load(open("TrainWeightFile.p", "rb"))
-    random_forest_test(data.RF,test[:,:-1],test[:,-1])
-    kd_tree_test(data.KD,test[:,:-1],test[:,-1],data.GroundTruth)        #kd_tree(feature)
+
+    random_forest_test(data.RandomForest,test[:,:-1],test[:,-1])
+    kd_tree_test(data.KDTree,test[:,:-1],test[:,-1],data.GroundTruth)        #kd_tree(feature)
 
 if __name__ == '__main__':
     main()

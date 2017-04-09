@@ -13,7 +13,7 @@ class view:
     def __init__(self):
         self.filePath = {}
         self.folderName=""
-        self.resize = 100
+        self.resize = 30
 
     def getFolderName(self,fileName,file):
         '''
@@ -165,9 +165,17 @@ class view:
         # print(img.shape)
         # cv2.imshow('img', img)
         # cv2.waitKey(0)
-        return img
+        return img,strockInfo
 
-    def start(self,fileName,featureFunctions,limit=999999):
+    def OnlineFeature(self,strock):
+        #print(strock)
+        first=strock[0][0]
+        #print(first)
+        last = strock[len(strock)-1][len(strock[len(strock)-1])-1]
+        ans=(first[0]-last[0])**2+(first[1]-last[1])**2
+        return math.sqrt(ans)
+
+    def start(self,fileName,featureFunctionsOffline,featureFunctionsOnline,limit=1000):
         self.openFile(fileName)
         len1=0
         for i in self.filePath.keys():
@@ -176,16 +184,18 @@ class view:
         #limit = len1/len(self.filePath.keys())
         firstPath = True
         numberToClass={}
-        featureMatrix=numpy.array([])
+        featureMatrix=[]
         #count = 0
         #featureFile = open("feature"+fileName[-5:], 'w', newline='')
-        for symb in self.filePath.keys():
-            #print('working on: ', symb)
+        symSet=list(self.filePath.keys())
+        symSet.sort()
+        for symb in symSet:
+            print('working on: ', symb)
             #if len(self.filePath[symb]) < limit:
             #    continue
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
-            for item in self.filePath[symb]:
+            for item in values:
                 featureVector = numpy.array([])
                 if firstPath:
                     self.folderName = self.getFolderName(fileName,item)
@@ -196,18 +206,21 @@ class view:
                     self.folderName = self.getFolderName(fileName, item)
                     tree = ET.parse(self.folderName + item)
 
-                img=self.preprocessing(tree)
-                for function in featureFunctions:
+                img,strockList=self.preprocessing(tree)
+                for function in featureFunctionsOffline:
                     feature=function(img)
                     featureVector=numpy.append(featureVector,feature)
+                for function in featureFunctionsOnline:
+                    feature=function(strockList)
+                    featureVector=numpy.append(featureVector,feature)
                 featureVector = numpy.append(featureVector,symb)
-                featureMatrix = numpy.append(featureMatrix, featureVector)
+                featureMatrix.append(featureVector)# = numpy.append(featureMatrix, featureVector)
                 #featureFile.write(','.join(str(i) for i in featureVector))
                 #featureFile.write('\n')
             #numberToClass[count] = symb
             #count += 1
         #featureFile.close()
-        return featureMatrix#numpy.asarray(featureMatrix)
+        return numpy.asarray(featureMatrix)
 
     def XaxisProjection(self,img):
         projection=[]

@@ -25,13 +25,14 @@ def main():
 
 
     num = 1000
-    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection, aView.DiagonalProjections]
-    train=aView.start(fileNameTrain,functions,num)
-    #print("Feature shape=",train.shape)
+    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection]#,aView.DiagonalProjections]
+    train=aView.start(fileNameTrain,functions,[aView.OnlineFeature],num)
+    print("Feature shape=",train.shape)
     numpy.random.shuffle(train)
 
     print('done with features!!!')
     start = time.time()
+    #print(train)
     rf=random_forest_train(train[:,:-1],train[:,-1])
     end = time.time()
     print("Training time for random forest",end-start)
