@@ -22,16 +22,16 @@ def main():
             num=sys.argv[3]
 
     num = 1000
-    functions=[aView.hog]#, aView.zonning,aView.XaxisProjection,aView.YaxisProjection]
+    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection, aView.DiagonalProjections]
     train=aView.start(fileNameTrain,functions,num)
-    print("Feature shape=",train.shape)
+    #print("Feature shape=",train.shape)
     numpy.random.shuffle(train)
 
     aView=view()
-    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection]
+    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection, aView.DiagonalProjections]
     test=aView.start(fileNameTest,functions,num)
     numpy.random.shuffle(test)
-    print("Feature shape=", test.shape)
+    #print("Feature shape=", test.shape)
 
     print('done with features!!!')
     start = time.time()

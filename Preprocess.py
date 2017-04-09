@@ -176,8 +176,8 @@ class view:
         #limit = len1/len(self.filePath.keys())
         firstPath = True
         numberToClass={}
-        featureMatrix=[]
-        count = 0
+        featureMatrix=numpy.array([])
+        #count = 0
         #featureFile = open("feature"+fileName[-5:], 'w', newline='')
         for symb in self.filePath.keys():
             print('working on: ', symb)
@@ -200,14 +200,14 @@ class view:
                 for function in featureFunctions:
                     feature=function(img)
                     featureVector=numpy.append(featureVector,feature)
-                featureVector = numpy.append(featureVector,count)
-                featureMatrix.append(featureVector)
+                featureVector = numpy.append(featureVector,symb)
+                featureMatrix = numpy.append(featureMatrix, featureVector)
                 #featureFile.write(','.join(str(i) for i in featureVector))
                 #featureFile.write('\n')
-            numberToClass[count] = symb
-            count += 1
+            #numberToClass[count] = symb
+            #count += 1
         #featureFile.close()
-        return numpy.asarray(featureMatrix)
+        return featureMatrix#numpy.asarray(featureMatrix)
 
     def XaxisProjection(self,img):
         projection=[]
@@ -221,6 +221,21 @@ class view:
             projection.append(numpy.sum(img[iter]))
         return numpy.asarray(projection)
 
+    def DiagonalProjections(self, img):
+        # create initial projection arrays initialzed to zeroes
+        projectionTopLeft = [0]*(self.resize *2 - 1)
+        projectionTopRight = [0] * (self.resize * 2 - 1)
+        for i in range(0, self.resize):
+            for j in range(0, self.resize):
+                # add to TopLeft if index sums match
+                projectionTopLeft[i+j] += img[i, j]
+                # reverse the index of column and then add if index sums match
+                idY = self.resize - j - 1
+                projectionTopRight[i + idY] += img[i, j]
+
+        # merge both diagonal features and return
+        projectionTopLeft.extend(projectionTopRight)
+        return numpy.asarray(projectionTopLeft)
 
     def zonning(self,img,numberOfbins=10):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

@@ -10,23 +10,19 @@ def random_forest_train(train_features, ground_labels):
     return rf
 
 def random_forest_test(rf, test_features, test_labels):
-    #scores = cross_val_score(rf, test_features, test_labels)
-
-    #scores=rf.score(test_features,test_labels)
-    #print('rf result', scores)
-
-    #scores=rf.score(test_features,test_labels)
     score=0
-    prediction= rf.predict(test_features)
+    prediction = rf.predict(test_features)
 
     for index in range(len(test_labels)):
-        classPredict =prediction[index]
+        classPredict = prediction[index]
         #print(classPredict," ",test_labels[index])
         if classPredict == test_labels[index]:
             score+=1
     print('Random Forest score correct: ', score)
     print('Random Forest incorrect: ', len(test_labels) - score)
     print('Accuracy:',(score/len(test_labels)*100))
+
+    return prediction
 
 def kd_tree_train(train_features):
     kd = sklearn.neighbors.KDTree(train_features)
