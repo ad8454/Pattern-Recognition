@@ -21,7 +21,7 @@ def random_forest_test(rf, test_features, test_labels):
 
     for index in range(len(test_labels)):
         classPredict =prediction[index]
-        print(classPredict," ",test_labels[index])
+        #print(classPredict," ",test_labels[index])
         if classPredict == test_labels[index]:
             score+=1
     print('Random Forest score correct: ', score)
@@ -41,7 +41,7 @@ def kd_tree_test(kd, test_features, test_labels, ground_labels):
         if ground_labels[index] == test_labels[label_idx]:
             score += 1
         label_idx+=1
-
+    #dist, ind = kd.query(test_features, k=1)
     print('kdtree score correct: ', score)
     print('kdtree score incorrect: ', len(test_features) - score)
     print('kdtree accuracy: ',(score/len(test_features)*100))
