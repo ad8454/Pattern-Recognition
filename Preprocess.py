@@ -179,7 +179,7 @@ class view:
         count = 0
         #featureFile = open("feature"+fileName[-5:], 'w', newline='')
         for symb in self.filePath.keys():
-            print('working on: ', symb)
+            #print('working on: ', symb)
             #if len(self.filePath[symb]) < limit:
             #    continue
             size = min(int(limit), len(self.filePath[symb]))

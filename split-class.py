@@ -51,21 +51,28 @@ def partition_helper(file_txt, type, t):
 
     # write test data set to disk
     with open(type + '-test.csv', 'w') as new_file:
+        count=0
+        count_train=0
         for key in all_symbols.keys():
+            count+=1
             # compute testing set size as an integer
             testing_size = len(all_symbols[key]) * t // 100
             for ele in all_symbols[key][:testing_size]:
                 new_file.write(str(ele) + ',' + key + '\n')
-    print("Total",len(all_symbols[key]))
-    print("Training size",testing_size)
-    print("Testing size", len(all_symbols[key])-testing_size)
+                count_train+=1
+
     # write training data set to disk
     with open(type + '-train.csv', 'w') as new_file:
+        count_test = 0
         for key in all_symbols.keys():
             # compute training set size as an integer
             testing_size = len(all_symbols[key]) * t // 100
             for ele in all_symbols[key][testing_size:]:
                 new_file.write(str(ele) + ',' + key + '\n')
+                count_test+=1
+    print("Total",count_train+count_test)
+    print("Training size",count_test)
+    print("Testing size", count_train)
 
 
 if __name__ == '__main__':
