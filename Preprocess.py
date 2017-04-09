@@ -4,6 +4,7 @@ import platform
 import xml.etree.ElementTree as ET
 import cv2
 import os
+import math
 
 class view:
     __slots__ = 'folderName','filePath','HTMLFile','fileDiscriptor','resize','resize_other'
@@ -132,8 +133,6 @@ class view:
             pts = numpy.asarray(eachStrock, numpy.int32)
             pts = pts.reshape((-1, 1, 2))
             cv2.polylines(img, [pts], False, (255, 255, 255))
-
-        img = cv2.GaussianBlur(img, (3, 3), 1)
         #cv2.imshow('window', img)
         #cv2.waitKey(0)
         return img
@@ -171,15 +170,16 @@ class view:
         self.openFile(fileName)
         len1=0
         for i in self.filePath.keys():
-            print(i," ",len(self.filePath[i]))
+            #print(i," ",len(self.filePath[i]))
             len1+=len(self.filePath[i])
         #limit = len1/len(self.filePath.keys())
         firstPath = True
         numberToClass={}
         featureMatrix=[]
         count = 0
-        featureFile = open("feature.csv", 'w', newline='')
+        #featureFile = open("feature.csv", 'w', newline='')
         for symb in self.filePath.keys():
+            print('working on: ', symb)
             #if len(self.filePath[symb]) < limit:
             #    continue
             size = min(int(limit), len(self.filePath[symb]))
@@ -201,11 +201,11 @@ class view:
                     featureVector=numpy.append(featureVector,feature)
                 featureVector = numpy.append(featureVector,count)
                 featureMatrix.append(featureVector)
-                featureFile.write(','.join(str(i) for i in featureVector))
+                #featureFile.write(','.join(str(i) for i in featureVector))
                 #featureFile.write(',' + (str(symb)) + '\n')
             numberToClass[count] = symb
             count += 1
-        featureFile.close()
+        #featureFile.close()
         return numpy.asarray(featureMatrix)
 
     def XaxisProjection(self,img):
@@ -236,15 +236,56 @@ class view:
         return numpy.asarray(zone)
 
 
-
     def Histogram(self,img,numberOfChunks=10):
-        '''
-        This program creates the histogram
-        :param img:
-        :param numberOfChunks:
-        :return:
-        '''
         pass
+
+    def hog(self, image):
+        Gh = image.copy()
+        Gd = image.copy()
+
+        # convert to 1 channel binary image
+        image = image[:, :, 0]
+
+        cell_size = self.resize // 10
+
+        X = numpy.asarray([-1, 0, 1])
+        Y = X.transpose()
+
+        # Calculate the intensity gradients of the image using the above operators
+        for i in range(0, len(image), cell_size):
+            for j in range(0, len(image[i]), cell_size):
+                img_cell = image[i:i+cell_size, j:j+cell_size]
+                sumx = 0
+                sumy = 0
+                for a in range(3):
+                    for b in range(3):
+                        valx = X[a][b]
+                        valy = Y[a][b]
+                        x = i + 1 - a
+                        y = j + 1 - b
+                        if x < 0 or x >= len(image) or y < 0 or y >= len(image[i]):
+                            px = image[i][j]
+                        else:
+                            px = image[x][y]
+                        sumx += (valx * px)
+                        sumy += (valy * px)
+
+                sumx //= 9
+                sumy //= 9
+                Gh[i][j] = (math.sqrt((sumx ** 2) + (sumy ** 2)))
+
+                # Get absolute angle in degrees and assign to appropriate bin.
+                angle = abs(math.atan2(sumy, sumx) * 180 / 3.141592)
+                if angle < 22.5 or angle > 157.5:
+                    Gd[i][j] = 0
+                elif angle < 67.5:
+                    Gd[i][j] = 45
+                elif angle < 112.5:
+                    Gd[i][j] = 90
+                else:
+                    Gd[i][j] = 135
+
+
 
 
 
