@@ -22,9 +22,14 @@ def main():
         if len(sys.argv) >2:
             num=sys.argv[2]
     functions=[aView.zonning,aView.XaxisProjection,aView.YaxisProjection]
+
+
+    num = 1000
+    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection, aView.DiagonalProjections]
     train=aView.start(fileNameTrain,functions,num)
-    print("Feature shape=",train.shape)
+    #print("Feature shape=",train.shape)
     numpy.random.shuffle(train)
+
     print('done with features!!!')
     start = time.time()
     rf=random_forest_train(train[:,:-1],train[:,-1])

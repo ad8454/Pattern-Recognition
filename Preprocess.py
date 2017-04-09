@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 import cv2
 import os
 import math
+import scipy.ndimage
 
 class view:
     __slots__ = 'folderName','filePath','HTMLFile','fileDiscriptor','resize','resize_other'
@@ -175,8 +176,8 @@ class view:
         #limit = len1/len(self.filePath.keys())
         firstPath = True
         numberToClass={}
-        featureMatrix=[]
-        count = 0
+        featureMatrix=numpy.array([])
+        #count = 0
         #featureFile = open("feature"+fileName[-5:], 'w', newline='')
         for symb in self.filePath.keys():
             #print('working on: ', symb)
@@ -199,14 +200,14 @@ class view:
                 for function in featureFunctions:
                     feature=function(img)
                     featureVector=numpy.append(featureVector,feature)
-                featureVector = numpy.append(featureVector,count)
-                featureMatrix.append(featureVector)
+                featureVector = numpy.append(featureVector,symb)
+                featureMatrix = numpy.append(featureMatrix, featureVector)
                 #featureFile.write(','.join(str(i) for i in featureVector))
                 #featureFile.write('\n')
-            numberToClass[count] = symb
-            count += 1
+            #numberToClass[count] = symb
+            #count += 1
         #featureFile.close()
-        return numpy.asarray(featureMatrix)
+        return featureMatrix#numpy.asarray(featureMatrix)
 
     def XaxisProjection(self,img):
         projection=[]
@@ -220,6 +221,21 @@ class view:
             projection.append(numpy.sum(img[iter]))
         return numpy.asarray(projection)
 
+    def DiagonalProjections(self, img):
+        # create initial projection arrays initialzed to zeroes
+        projectionTopLeft = [0]*(self.resize *2 - 1)
+        projectionTopRight = [0] * (self.resize * 2 - 1)
+        for i in range(0, self.resize):
+            for j in range(0, self.resize):
+                # add to TopLeft if index sums match
+                projectionTopLeft[i+j] += img[i, j]
+                # reverse the index of column and then add if index sums match
+                idY = self.resize - j - 1
+                projectionTopRight[i + idY] += img[i, j]
+
+        # merge both diagonal features and return
+        projectionTopLeft.extend(projectionTopRight)
+        return numpy.asarray(projectionTopLeft)
 
     def zonning(self,img,numberOfbins=10):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -240,56 +256,34 @@ class view:
         pass
 
     def hog(self, image):
-        Gh = image.copy()
-        Gd = image.copy()
 
+        image = cv2.GaussianBlur(image, (3, 3), 1)
         # convert to 1 channel binary image
         image = image[:, :, 0]
 
         cell_size = self.resize // 10
 
-        X = numpy.asarray([-1, 0, 1])
-        Y = X.transpose()
+        Ix = cv2.Sobel(image, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=1)
+        Iy = cv2.Sobel(image, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=1)
 
-        # Calculate the intensity gradients of the image using the above operators
-        for i in range(0, len(image), cell_size):
-            for j in range(0, len(image[i]), cell_size):
-                img_cell = image[i:i+cell_size, j:j+cell_size]
-                sumx = 0
-                sumy = 0
-                for a in range(3):
-                    for b in range(3):
-                        valx = X[a][b]
-                        valy = Y[a][b]
-                        x = i + 1 - a
-                        y = j + 1 - b
-                        if x < 0 or x >= len(image) or y < 0 or y >= len(image[i]):
-                            px = image[i][j]
-                        else:
-                            px = image[x][y]
-                        sumx += (valx * px)
-                        sumy += (valy * px)
+        mag, angle = cv2.cartToPolar(Ix, Iy, angleInDegrees=True)
 
-                sumx //= 9
-                sumy //= 9
-                Gh[i][j] = (math.sqrt((sumx ** 2) + (sumy ** 2)))
+        #print(mag.shape, angle.shape)
 
-                # Get absolute angle in degrees and assign to appropriate bin.
-                angle = abs(math.atan2(sumy, sumx) * 180 / 3.141592)
-                if angle < 22.5 or angle > 157.5:
-                    Gd[i][j] = 0
-                elif angle < 67.5:
-                    Gd[i][j] = 45
-                elif angle < 112.5:
-                    Gd[i][j] = 90
-                else:
-                    Gd[i][j] = 135
+        gradients = list(zip(mag.ravel(), angle.ravel()))
 
+        bins = []
+        bin_limits = [-22.5, 22.5, 67.5, 112.5, 157.5, 202.5]
 
+        for cell in range(0, len(image[0]), cell_size):
+            for i in range(1, len(bin_limits)):
+                prev_limit = bin_limits[i-1]
+                limit = bin_limits[i]
+                val = [ele[0] for ele in gradients[cell:cell+cell_size] if prev_limit <= ele[1] < limit]
+                val.append(0)   # to handle empty list
 
+                bins.append(sum(val))
 
+        #print(sum(bins))
 
-
-
-
-
+        return bins

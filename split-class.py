@@ -20,8 +20,8 @@ def partition(ground_real_txt, ground_junk_txt, t):
     :return: None
     """
 
-    partition_helper(ground_real_txt, 'real', t)
-    partition_helper(ground_junk_txt, 'junk', t)
+    partition_helper(ground_real_txt, 'X-2', t)
+    #partition_helper(ground_junk_txt, 'junk', t)
 
 
 def partition_helper(file_txt, type, t):
