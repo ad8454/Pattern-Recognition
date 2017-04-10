@@ -5,6 +5,7 @@ import numpy
 import time
 import pickle
 from TrainedWeights import TrainWeight
+from sklearn.externals import joblib
 
 
 
@@ -38,8 +39,9 @@ def main():
     kd=kd_tree_train(train[:,:-1])
     end = time.time()
     print("Training time for KDTree", end - start)
-    pickle.dump(TrainWeight(rf,kd,train[:,-1]), open("TrainWeightFile.p", "wb"), protocol=2)
-    pickle.dump(train[:,:-1], open("featureVector.p", "wb"), protocol=2)
+    joblib.dump(TrainWeight(rf,kd,train[:,-1]), open("TrainWeightFile.p", "wb"), compress=True)
+    #pickle.dump(TrainWeight(rf,kd,train[:,-1]), open("TrainWeightFile.p", "wb"), protocol=2)
+    #pickle.dump(train[:,:-1], open("featureVector.p", "wb"), protocol=2)
 
 if __name__ == '__main__':
     main()

@@ -3,6 +3,7 @@ from Preprocess import view
 from Classifiers import *
 import numpy
 import pickle
+from sklearn.externals import joblib
 import time
 import csv
 
@@ -19,7 +20,7 @@ def main():
         if len(sys.argv) >2:
             num=sys.argv[2]
 
-    data = pickle.load(open("TrainWeightFile.p", "rb"))
+    data = joblib.load(open("TrainWeightFile.p", "rb"))
     functions=[aView.zonning,aView.XaxisProjection,aView.YaxisProjection]
     aView=view()
     functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection,aView.DiagonalProjections]
