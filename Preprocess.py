@@ -13,11 +13,12 @@ class view:
     def __init__(self):
         self.filePath = {}
         self.folderName=""
-        self.resize = 30
+        self.resize = 50
+
 
     def getFolderName(self,fileName,file):
         '''
-        To get the folder apth of the file
+        To get the folder path of the file
         '''
 
         os1 = platform.platform()
@@ -66,17 +67,24 @@ class view:
             #print(strokList)
         return strokList,strokList1
 
+    def getFileName(self, Class, line):
+        if Class == "junk" or Class=="Junk":
+            pathName = "junk"
+        else:
+            pathName = "iso"
+        inkml = pathName + line.split("_")[-1] + ".inkml"
+        return inkml
 
     def createDict(self,Class,line):
         if Class == "junk" or Class=="Junk":
             pathName = "junk"
         else:
             pathName = "iso"
-        path = pathName + line.split("_")[-1] + ".inkml"
-        if Class.lower() in self.filePath:
-            self.filePath[Class.lower()] += [path]
+        #path = pathName + line.split("_")[-1] + ".inkml"
+        if Class in self.filePath:
+            self.filePath[Class] += [line]
         else:
-            self.filePath[Class.lower()] = [path]
+            self.filePath[Class] = [line]
 
 
     def centerTheImage(self,img,deltaX,deltaY):
@@ -165,7 +173,11 @@ class view:
         # print(img.shape)
         # cv2.imshow('img', img)
         # cv2.waitKey(0)
-        return img,strockInfo
+        if  heightMax - heightMin == 0:
+            aspect=0
+        else:
+            aspect = (widthMax - widthMin)/ (heightMax - heightMin)
+        return img,strockInfo,aspect
 
     def OnlineFeature(self,strock):
         #print(strock)
@@ -175,51 +187,69 @@ class view:
         ans=(first[0]-last[0])**2+(first[1]-last[1])**2
         return math.sqrt(ans)
 
-    def start(self,fileName,featureFunctionsOffline,featureFunctionsOnline,limit=1000):
+
+
+
+    def start(self,fileName,featureFunctionsOffline,featureFunctionsOnline, isTest=False, limit=99999):
+
         self.openFile(fileName)
-        len1=0
+        len1 = 0
         for i in self.filePath.keys():
-            #print(i," ",len(self.filePath[i]))
-            len1+=len(self.filePath[i])
-        #limit = len1/len(self.filePath.keys())
+            # print(i," ",len(self.filePath[i]))
+            len1 += len(self.filePath[i])
+        # limit = len1/len(self.filePath.keys())
         firstPath = True
+
         numberToClass={}
         featureMatrix=[]
         #count = 0
         #featureFile = open("feature"+fileName[-5:], 'w', newline='')
         symSet=list(self.filePath.keys())
         symSet.sort()
+        opFileList = []
         for symb in symSet:
-            print('working on: ', symb)
+            print('working on: ',symb)
+
             #if len(self.filePath[symb]) < limit:
             #    continue
             size = min(int(limit), len(self.filePath[symb]))
             values = self.filePath[symb][:size]
+            if isTest:
+                values =self.filePath[symb]
             for item in values:
+                inkml = self.getFileName(symb, item)
                 featureVector = numpy.array([])
                 if firstPath:
-                    self.folderName = self.getFolderName(fileName,item)
-                    firstPath=False
+                    self.folderName = self.getFolderName(fileName, inkml)
+                    firstPath = False
                 try:
-                    tree = ET.parse(self.folderName + item)
+                    tree = ET.parse(self.folderName + inkml)
                 except:
-                    self.folderName = self.getFolderName(fileName, item)
-                    tree = ET.parse(self.folderName + item)
+                    self.folderName = self.getFolderName(fileName, inkml)
+                    tree = ET.parse(self.folderName + inkml)
 
-                img,strockList=self.preprocessing(tree)
+
+                img,strockList,aspectR=self.preprocessing(tree)
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                img = cv2.GaussianBlur(img, (3, 3), 1)
                 for function in featureFunctionsOffline:
                     feature=function(img)
                     featureVector=numpy.append(featureVector,feature)
+                #featureVector = numpy.append(featureVector, aspectR)
                 for function in featureFunctionsOnline:
                     feature=function(strockList)
                     featureVector=numpy.append(featureVector,feature)
                 featureVector = numpy.append(featureVector,symb)
                 featureMatrix.append(featureVector)# = numpy.append(featureMatrix, featureVector)
+                opFileList.append(item)
                 #featureFile.write(','.join(str(i) for i in featureVector))
                 #featureFile.write('\n')
             #numberToClass[count] = symb
             #count += 1
         #featureFile.close()
+
+        if isTest:
+            return numpy.asarray(featureMatrix), opFileList
         return numpy.asarray(featureMatrix)
 
     def XaxisProjection(self,img):
@@ -251,7 +281,7 @@ class view:
         return numpy.asarray(projectionTopLeft)
 
     def zonning(self,img,numberOfbins=10):
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         size = self.resize // numberOfbins
         prevY = 0
         zone=[]
@@ -267,7 +297,7 @@ class view:
 
     def Histogram(self,img,numberOfChunks=10):
         pass
-
+    '''
     def hog(self, image):
 
         image = cv2.GaussianBlur(image, (3, 3), 1)
@@ -300,3 +330,4 @@ class view:
         #print(sum(bins))
 
         return bins
+        '''

@@ -18,15 +18,13 @@ def main():
         fileNameTrain = 'F:/Dev/PycharmProjects/Py34/PatternRecognition/Project1/real-train.csv'
     else:
         fileNameTrain = sys.argv[1]
-        aView = view()
         if len(sys.argv) >2:
             num=sys.argv[2]
-    functions=[aView.zonning,aView.XaxisProjection,aView.YaxisProjection]
 
+    aView = view()
+    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection,aView.DiagonalProjections]
+    train=aView.start(fileNameTrain,functions,[aView.OnlineFeature])
 
-    num = 1000
-    functions = [aView.zonning, aView.XaxisProjection, aView.YaxisProjection]#,aView.DiagonalProjections]
-    train=aView.start(fileNameTrain,functions,[aView.OnlineFeature],num)
     print("Feature shape=",train.shape)
     numpy.random.shuffle(train)
 
@@ -40,7 +38,8 @@ def main():
     kd=kd_tree_train(train[:,:-1])
     end = time.time()
     print("Training time for KDTree", end - start)
-    pickle.dump(TrainWeight(rf,kd,train[:,-1]), open("TrainWeightFile.p", "wb"))
+    pickle.dump(TrainWeight(rf,kd,train[:,-1]), open("TrainWeightFile.p", "wb"), protocol=2)
+    pickle.dump(train[:,:-1], open("featureVector.p", "wb"), protocol=2)
 
 if __name__ == '__main__':
     main()
